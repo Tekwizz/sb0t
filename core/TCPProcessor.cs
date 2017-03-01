@@ -1,3 +1,21 @@
+/*
+    sb0t ares chat server
+    Copyright (C) 2016  AresChat
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +24,7 @@ using captcha;
 using iconnect;
 using core.LinkHub;
 using System.Net;
+using commands;
 
 namespace core
 {
@@ -191,6 +210,8 @@ namespace core
             String name = packet.ReadString(client);
             IClient target = UserPool.AUsers.Find(x => x.Name == name);
 
+            ignore = !client.IgnoreList.Contains(name);
+
             if (target == null)
                 target = UserPool.WUsers.Find(x => x.Name == name);
 
@@ -202,12 +223,16 @@ namespace core
                 {
                     client.IgnoreList.RemoveAll(x => x == name);
                     Events.IgnoredStateChanged(client, target, ignore);
+                    IgnoreManager.RemoveIgnore(client, name);
                 }
                 else if (Events.Ignoring(client, target))
                     if (client.SocketConnected)
                     {
                         if (!client.IgnoreList.Contains(name))
+                        {
                             client.IgnoreList.Add(name);
+                            IgnoreManager.AddIgnore(client, name);
+                        }
 
                         Events.IgnoredStateChanged(client, target, ignore);
                     }
@@ -263,6 +288,10 @@ namespace core
             {
                 if (target != null)
                 {
+                    if(ident == "cb0t_scribble_once" && !Events.CanPrivateMessage(client, target))
+                    {
+                        return;
+                    }
                     if (!target.IgnoreList.Contains(client.Name))
                         target.SendPacket(TCPOutbound.CustomData(target, client.Name, ident, data));
                 }
@@ -779,6 +808,8 @@ namespace core
                     Events.Rejected(client, RejectedMsg.UserDefined);
                     throw new Exception("user defined rejection");
                 }
+
+            IgnoreManager.LoadIgnores(client);
 
             if (Helpers.IsLocalHost(client))
             {

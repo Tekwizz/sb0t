@@ -1,3 +1,21 @@
+/*
+    sb0t ares chat server
+    Copyright (C) 2016  AresChat
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -155,6 +173,8 @@ namespace core
             if (client.OrgName == Settings.Get<String>("bot"))
                 client.OrgName = String.Empty;
 
+            client.OrgName = client.OrgName.Trim();
+
             client.OrgName = Regex.Replace(client.OrgName, Regex.Escape("_"), " ", RegexOptions.IgnoreCase);
             client.OrgName = Regex.Replace(client.OrgName, Regex.Escape("\""), String.Empty, RegexOptions.IgnoreCase);
             client.OrgName = Regex.Replace(client.OrgName, Regex.Escape("/"), String.Empty, RegexOptions.IgnoreCase);
@@ -164,7 +184,7 @@ namespace core
             while (Encoding.UTF8.GetByteCount(client.OrgName) > 20)
                 client.OrgName = client.OrgName.Substring(0, client.OrgName.Length - 1);
 
-            if (client.OrgName.Length < 2)
+            if (client.OrgName.Length < 2 || string.IsNullOrWhiteSpace(client.OrgName))
             {
                 client.OrgName = client.WebClient ? "ib0t" : "anon ";
 

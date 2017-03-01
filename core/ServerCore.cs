@@ -1,3 +1,21 @@
+/*
+    sb0t ares chat server
+    Copyright (C) 2016  AresChat
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +35,6 @@ namespace core
 {
     public class ServerCore
     {
-        public static List<String> BlockedIps = new List<String>();
         public static event EventHandler<ServerLogEventArgs> LogUpdate;
         internal static core.LinkLeaf.LinkClient Linker;
 
@@ -136,6 +153,7 @@ namespace core
             BanSystem.LoadBans();
             IdleManager.Reset();
             Proxies.Start(Helpers.UnixTime);
+            IgnoreManager.init();
 
             if (Settings.Get<bool>("roomsearch"))
                 UdpChannelList.Start();
@@ -161,7 +179,7 @@ namespace core
 
                 ulong time = Time.Now;
 
-                if (time > (last_update_check + (1*60*1000)))
+                if (time > (last_update_check + (30 * 60 * 1000)))
                 {
                     last_update_check = time;
                     CheckLatestVersion();
@@ -418,35 +436,6 @@ namespace core
                         "User-Agent", "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
                     );
 
-                    using (var response = await client.GetAsync(Settings.BLACKLIST_URL))
-                    using (var content = response.Content)
-                    {
-                        {
-                            var result = await content.ReadAsStringAsync();
-
-                            if (result == null)
-                            {
-                                return;
-                            }
-
-                            BlockedIps.Clear();
-
-                            string[] lines = result.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                            foreach(string s in lines) {
-                                if(s.StartsWith("#")) // comments
-                                {
-                                    continue;
-                                }
-
-                                BlockedIps.Add(s.Trim());
-                                if (Settings.ExternalIP.ToString().Equals(s.Trim()))
-                                {
-                                    System.Environment.Exit(1);
-                                }
-                            }                   
-                        }
-                    }
-
                     using (var response = await client.GetAsync(Settings.VERSION_CHECK_URL))
                     using (var content = response.Content)
                     {
@@ -478,7 +467,7 @@ namespace core
                                 if (x.Level >= ILevel.Host)
                                     x.Print(message);
                                 x.PM(Settings.Get<String>("bot"), message);
-                            }, x => x.LoggedIn && !x.Quarantined && x.Level >= ILevel.Administrator);
+                            }, x => x.LoggedIn && !x.Quarantined && x.Owner);
 
                             // web users
                             UserPool.WUsers.ForEachWhere(x =>
@@ -486,7 +475,7 @@ namespace core
                                 if (x.Level >= ILevel.Host)
                                     x.Print(message);
                                 x.PM(Settings.Get<String>("bot"), message);
-                            }, x => x.LoggedIn && !x.Quarantined && x.Level >= ILevel.Administrator);
+                            }, x => x.LoggedIn && !x.Quarantined && x.Owner);
                 
                         }
 

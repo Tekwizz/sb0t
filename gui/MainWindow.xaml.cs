@@ -1,3 +1,21 @@
+/*
+    sb0t ares chat server
+    Copyright (C) 2016  AresChat
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,6 +166,7 @@ namespace gui
             this.textBox5.IsEnabled = !running;
             this.textBox6.IsEnabled = !running;
             this.checkBox1.IsEnabled = !running;
+            this.checkBox25.IsEnabled = !running;
             this.checkBox2.IsEnabled = !running;
             this.checkBox3.IsEnabled = !running;
             this.checkBox4.IsEnabled = !running;
@@ -334,12 +353,14 @@ namespace gui
                 Settings.Set("strict", this.checkBox22.IsChecked);
             else if (cb.Name == "checkBox23")
                 Settings.Set("roomsearch", this.checkBox23.IsChecked);
-            else if (cb.Name == "checkBox24")
-                Settings.Set("allow_unreg", this.checkBox24.IsChecked);
             else if (cb.Name == "checkBox30")
             {
                 Settings.Set("script_can_level", this.checkBox30.IsChecked);
                 Settings.ScriptCanLevel(Settings.Get<bool>("script_can_level"));
+            }
+            else if (cb.Name == "checkBox25")
+            {
+                Settings.Set("fonts_enabled", this.checkBox25.IsChecked);
             }
         }
 
